@@ -1,3 +1,9 @@
+## 1.0.5
+
+* **CI/CD Integration**:
+  * Set up GitHub Actions CI workflow (`flutter.yml`) in `.github/workflows/` to automatically run code analysis and unit tests on pushes and pull requests to `main`.
+  * Added build status badge back to `README.md`.
+
 ## 1.0.4
 
 * **Rich API Reference Documentation**:

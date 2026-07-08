@@ -2,6 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/motion_sensors_pro.svg)](https://pub.dev/packages/motion_sensors_pro)
 [![pub points](https://img.shields.io/pub/points/motion_sensors_pro.svg)](https://pub.dev/packages/motion_sensors_pro/score)
+[![build](https://github.com/AtulPurohit/Motion_Sensors_Pro/actions/workflows/flutter.yml/badge.svg)](https://github.com/AtulPurohit/Motion_Sensors_Pro/actions)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Web-orange?logo=flutter)](https://pub.dev/packages/motion_sensors_pro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
 
