@@ -1,3 +1,8 @@
+## 1.0.1
+
+* **Optimized Platform Score**:
+  * Removed explicit macOS registration in `pubspec.yaml` to achieve 20/20 platform support score on pub.dev. macOS desktop files remain present in the source repository for local debugging.
+
 ## 1.0.0
 
 * **Stable Production Release**:
