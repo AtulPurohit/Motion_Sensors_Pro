@@ -1,6 +1,8 @@
 # Motion Sensors Pro
 
 [![pub package](https://img.shields.io/pub/v/motion_sensors_pro.svg)](https://pub.dev/packages/motion_sensors_pro)
+[![pub points](https://img.shields.io/pub/points/motion_sensors_pro.svg)](https://pub.dev/packages/motion_sensors_pro/score)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/AtulPurohit/Motion_Sensors_Pro/flutter.yml?branch=main&label=build)](https://github.com/AtulPurohit/Motion_Sensors_Pro/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A premium, production-grade motion and environmental sensor engine for Flutter. By combining high-efficiency native gesture classification with real-time, low-latency streams for **8 physical hardware sensors**, it provides developers with the ultimate API for immersive, device-aware mobile experiences. Engineered with sub-millisecond dynamic intervals, thread-safe memory mapping, and seamless Xcode Simulator mock-shake routing, it represents the new standard for motion tracking in Flutter.
