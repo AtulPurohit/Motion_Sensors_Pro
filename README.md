@@ -24,14 +24,6 @@ A high-performance, battery-efficient, and **Xcode simulator-aware** Flutter plu
 
 ---
 
-## ⚠️ Hardware Limitations & Safety Fallbacks
-
-1. **Barometer sensor availability**: Atmospheric pressure barometers are missing on budget Android models and older iOS units. `motion_sensors_pro` checks hardware natively and emits a `SENSOR_UNSUPPORTED` stream exception rather than crashing the native process.
-2. **Desktop environment testing**: macOS desktop devices do not contain raw physical accelerometers, gyroscopes, or barometers. The plugin catches this and returns a `SENSOR_UNAVAILABLE` error to protect your code layout.
-3. **Android Linear Acceleration**: If `TYPE_LINEAR_ACCELERATION` is unavailable on legacy Android boards, the plugin falls back to compute high-pass delta coordinates on `TYPE_ACCELEROMETER` natively.
-
----
-
 ## ✨ Why `motion_sensors_pro` is Better than `sensors_plus`
 
 | Feature | `sensors_plus` | `motion_sensors_pro` |
@@ -180,6 +172,14 @@ await MotionSensorsPro.mockShake();
 - **Shake**: Prioritizes Android's hardware `Sensor.TYPE_LINEAR_ACCELERATION` (gravity pre-subtracted by Android OS), falling back to magnitude-delta calculations on older hardware.
 - **Motion Sensors**: Integrates `SensorManager` event listeners for `TYPE_ACCELEROMETER`, `TYPE_LINEAR_ACCELERATION`, `TYPE_GYROSCOPE`, `TYPE_MAGNETIC_FIELD`, and `TYPE_PRESSURE`.
 - **Thread Safety**: Relies on a main-thread handler to pass events safely into Flutter's `EventSink`.
+
+---
+
+## ⚠️ Hardware Limitations & Safety Fallbacks
+
+- **Barometer sensor availability**: Atmospheric pressure barometers are missing on budget Android models and older iOS units. `motion_sensors_pro` checks hardware natively and emits a `SENSOR_UNSUPPORTED` stream exception rather than crashing the native process.
+- **Desktop environment testing**: macOS desktop devices do not contain raw physical accelerometers, gyroscopes, or barometers. The plugin catches this and returns a `SENSOR_UNAVAILABLE` error to protect your code layout.
+- **Android Linear Acceleration**: If `TYPE_LINEAR_ACCELERATION` is unavailable on legacy Android boards, the plugin falls back to compute high-pass delta coordinates on `TYPE_ACCELEROMETER` natively.
 
 ---
 
