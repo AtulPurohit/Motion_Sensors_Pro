@@ -256,6 +256,12 @@ await MotionSensorsPro.mockShake();
 
 ---
 
+## 📖 Learn More
+
+To explore the complete class signatures, event types, and parameter details, please check out the auto-generated [API Documentation on pub.dev](https://pub.dev/documentation/motion_sensors_pro/latest/).
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

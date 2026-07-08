@@ -1,3 +1,8 @@
+## 1.0.3
+
+* **Documentation Improvements**:
+  * Added **Learn More** section with auto-generated pub.dev API documentation link to `README.md`.
+
 ## 1.0.2
 
 * **Documentation Badge Tweaks**:
