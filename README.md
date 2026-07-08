@@ -55,6 +55,22 @@ Run `flutter pub get` in your project folder.
 
 ---
 
+## 📋 Requirements
+
+### iOS
+- iOS 12.0 or higher.
+- To listen to the **Barometer** (`barometerEvents`), you must include the `NSMotionUsageDescription` key in your `ios/Runner/Info.plist` file:
+  ```xml
+  <key>NSMotionUsageDescription</key>
+  <string>This app requires access to motion data to receive barometric pressure readings.</string>
+  ```
+
+### Android
+- Android SDK 21 (Lollipop) or higher.
+- Uses standard hardware sensors; no manifest permissions required.
+
+---
+
 ## 📖 Usage
 
 ### 1. Dynamic Sampling Frequency (Global Configuration)
