@@ -14,7 +14,7 @@ A high-performance, battery-efficient, and **Xcode simulator-aware** Flutter plu
 
 ---
 
-## ✨ Why `Motion Sensors Pro` is Better than `sensors_plus`
+## ✨ Why `motion_sensors_pro` is Better than `sensors_plus`
 
 | Feature | `sensors_plus` | `motion_sensors_pro` |
 | :--- | :---: | :---: |
