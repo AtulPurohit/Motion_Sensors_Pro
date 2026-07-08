@@ -1,3 +1,8 @@
+## 1.0.8
+
+* **Documentation Fixes**:
+  * Tracked and committed the previously untracked `Motion_Sensors_Pro_Atul_Purohit.png` image file to fix the broken image display link in `README.md`.
+
 ## 1.0.7
 
 * **Documentation Enhancements**:
