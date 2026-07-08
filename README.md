@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/motion_sensors_pro.svg)](https://pub.dev/packages/motion_sensors_pro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-An elite, hardware-optimized, and **Xcode simulator-aware** Flutter plugin that unifies **high-speed native shake gesture classification** with real-time, dynamic streams for **all 5 core motion & environmental sensors**:
+An elite, hardware-optimized, and **Xcode simulator-aware** Flutter plugin that unifies **high-speed native shake gesture classification** with real-time, dynamic streams for **all 8 core motion, environmental & interaction sensors**:
 
 1. **Shake Gesture Detection** (Native classification, 100% Simulator-friendly)
 2. **Accelerometer** (Raw 3-axis acceleration including gravity)
@@ -11,6 +11,9 @@ An elite, hardware-optimized, and **Xcode simulator-aware** Flutter plugin that 
 4. **Gyroscope** (Angular velocity/rotation speed)
 5. **Magnetometer** (Ambient magnetic field vector)
 6. **Barometer** (Atmospheric pressure & relative altitude changes)
+7. **Device Attitude** (Absolute 3D orientation: Roll, Pitch, Yaw via Sensor Fusion)
+8. **Pedometer** (Low-power hardware step counter updates)
+9. **Proximity Sensor** (Face detection/screen proximity monitoring)
 
 ---
 
@@ -36,6 +39,8 @@ An elite, hardware-optimized, and **Xcode simulator-aware** Flutter plugin that 
 | **Bridge Overhead / CPU Load** | High (floods bridge with 100+ coordinate msg/s) | **Ultra Low (sleeps when static, custom intervals)** |
 | **Barometer Fallback Handling** | ❌ Prone to crash on missing hardware | **✅ Graceful fallback (emits clean Unsupported exception)** |
 | **Desktop / macOS Support** | ⚠️ Partial / Unhandled channels | **✅ Safe fallbacks (returns descriptive status exceptions)** |
+| **3D Attitude (Roll/Pitch/Yaw)** | ❌ None | **✅ Supported (native sensor fusion)** |
+| **Pedometer & Proximity Sensors** | ❌ None | **✅ Supported (native step & face detection)** |
 
 ---
 
@@ -59,10 +64,10 @@ Run `flutter pub get` in your project folder.
 
 ### iOS
 - iOS 12.0 or higher.
-- To listen to the **Barometer** (`barometerEvents`), you must include the `NSMotionUsageDescription` key in your `ios/Runner/Info.plist` file:
+- To listen to the **Barometer** (`barometerEvents`) or **Pedometer** (`pedometerEvents`), you must include the `NSMotionUsageDescription` key in your `ios/Runner/Info.plist` file:
   ```xml
   <key>NSMotionUsageDescription</key>
-  <string>This app requires access to motion data to receive barometric pressure readings.</string>
+  <string>This app requires access to motion data to receive barometric pressure readings and count physical steps.</string>
   ```
 
 ### Android
@@ -168,6 +173,52 @@ MotionSensorsPro.barometerEvents.listen(
 
 ---
 
+### 8. Device Attitude (3D Sensor Fusion Orientation)
+
+Emits absolute orientation values (`roll`, `pitch`, `yaw`) in radians using native device-level Kalman filtering.
+
+```dart
+MotionSensorsPro.attitudeEvents.listen((event) {
+  print("Device Attitude: Roll: ${event.roll}, Pitch: ${event.pitch}, Yaw: ${event.yaw}");
+});
+```
+
+---
+
+### 9. Pedometer (Low-Power Step Counter)
+
+Emits low-power hardware step counter updates.
+
+```dart
+MotionSensorsPro.pedometerEvents.listen(
+  (event) {
+    print("Steps walked: ${event.steps}");
+  },
+  onError: (error) {
+    print("Pedometer not supported: $error");
+  },
+);
+```
+
+---
+
+### 10. Proximity Sensor (Face Detection / Obstructed Screen)
+
+Emits `true` if an object or user's face is close to the screen, and `false` otherwise. Automatically enables/disables hardware monitoring dynamically based on stream subscription status to maximize battery conservation.
+
+```dart
+MotionSensorsPro.proximityEvents.listen(
+  (event) {
+    print("Is screen obstructed/face near: ${event.isNear}");
+  },
+  onError: (error) {
+    print("Proximity sensor not supported: $error");
+  },
+);
+```
+
+---
+
 ## 🧪 Programmatic Testing (Mocking)
 
 You can programmatically mock a shake gesture event for automated driver/unit tests:
@@ -185,10 +236,12 @@ await MotionSensorsPro.mockShake();
 - **Shake**: Extended `UIWindow` to intercept `.motionShake` events directly.
 - **Motion Sensors**: Binds to `CMMotionManager`. Acceleration values are scaled by standard gravity ($9.80665$) to ensure cross-platform unit consistency.
 - **Barometer**: Accesses `CMAltimeter` and multiplies pressure values by $10.0$ to convert kilopascals ($kPa$) to standard hectopascals ($hPa$).
+- **Pedometer**: Directly integrates with CoreMotion `CMPedometer` step counts updates.
+- **Proximity**: Dynamically monitors `UIDevice.proximityStateDidChangeNotification` on subscription.
 
 ### Android (`Kotlin`)
 - **Shake**: Prioritizes Android's hardware `Sensor.TYPE_LINEAR_ACCELERATION` (gravity pre-subtracted by Android OS), falling back to magnitude-delta calculations on older hardware.
-- **Motion Sensors**: Integrates `SensorManager` event listeners for `TYPE_ACCELEROMETER`, `TYPE_LINEAR_ACCELERATION`, `TYPE_GYROSCOPE`, `TYPE_MAGNETIC_FIELD`, and `TYPE_PRESSURE`.
+- **Motion Sensors**: Integrates `SensorManager` event listeners for `TYPE_ACCELEROMETER`, `TYPE_LINEAR_ACCELERATION`, `TYPE_GYROSCOPE`, `TYPE_MAGNETIC_FIELD`, `TYPE_PRESSURE`, `TYPE_ROTATION_VECTOR` (Attitude), `TYPE_STEP_COUNTER`, and `TYPE_PROXIMITY`.
 - **Thread Safety**: Relies on a main-thread handler to pass events safely into Flutter's `EventSink`.
 
 ---
