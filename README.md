@@ -18,9 +18,11 @@ A high-performance, battery-efficient, and **Xcode simulator-aware** Flutter plu
 
 | Android | iOS | macOS | Web | Linux | Windows |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-|   ✅   |  ✅  |  ❌*  |  ❌  |  ❌   |   ❌    |
+|   ✅   |  ✅  |  ✅*  |  ✅*  |  ❌   |   ❌    |
 
 \* **macOS**: Exposes safe fallback stream handlers that emit descriptive unsupported sensor exceptions instead of raising missing plugin channel registration errors. Programmatic mock triggers remain fully operational for unit/widget testing.
+
+\* **Web**: Supported on mobile web browsers (Safari, Chrome, etc.) using HTML5 DeviceMotion & DeviceOrientation APIs. Setting sampling rate/interval is currently unsupported on web due to browser constraints.
 
 ---
 
