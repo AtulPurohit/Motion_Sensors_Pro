@@ -5,18 +5,35 @@ public class MotionSensorsProPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
   private static var eventSink: FlutterEventSink?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let methodChannel = FlutterMethodChannel(name: "motion_sensors_pro", binaryMessenger: registrar.messenger)
+    let messenger = registrar.messenger
+    let methodChannel = FlutterMethodChannel(name: "motion_sensors_pro", binaryMessenger: messenger)
     let instance = MotionSensorsProPlugin()
     registrar.addMethodCallDelegate(instance, channel: methodChannel)
 
-    let eventChannel = FlutterEventChannel(name: "motion_sensors_pro/shake", binaryMessenger: registrar.messenger)
+    // Shake Gesture
+    let eventChannel = FlutterEventChannel(name: "motion_sensors_pro/shake", binaryMessenger: messenger)
     eventChannel.setStreamHandler(instance)
+
+    // Fallback registration for 5 raw streams on macOS to prevent missing channel exception
+    let rawChannels = [
+      "motion_sensors_pro/accelerometer",
+      "motion_sensors_pro/user_accelerometer",
+      "motion_sensors_pro/gyroscope",
+      "motion_sensors_pro/magnetometer",
+      "motion_sensors_pro/barometer"
+    ]
+    for channelName in rawChannels {
+      let channel = FlutterEventChannel(name: channelName, binaryMessenger: messenger)
+      channel.setStreamHandler(FallbackStreamHandler())
+    }
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "mockShake":
       MotionSensorsProPlugin.triggerShakeNotification()
+      result(nil)
+    case "setSensorInterval":
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
@@ -48,5 +65,15 @@ public class MotionSensorsProPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
 
   public static func triggerShakeNotification() {
     NotificationCenter.default.post(name: NSNotification.Name("UIDeviceShakeNotification"), object: nil)
+  }
+}
+
+class FallbackStreamHandler: NSObject, FlutterStreamHandler {
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    return FlutterError(code: "SENSOR_UNAVAILABLE", message: "Hardware sensors are not available on macOS desktop platforms.", details: nil)
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    return nil
   }
 }
