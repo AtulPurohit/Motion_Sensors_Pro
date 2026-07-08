@@ -1,8 +1,8 @@
 name: motion_sensors_pro
 description: "Flutter plugin for accessing native shake gesture detection, accelerometer, gyroscope, magnetometer, barometer, 3D attitude, pedometer, and proximity sensors."
 version: 0.0.1
-homepage:
-
+homepage: https://github.com/AtulPurohit/Motion_Sensors_Pro
+repository: https://github.com/AtulPurohit/Motion_Sensors_Pro
 environment:
   sdk: ^3.11.1
   flutter: '>=3.3.0'
