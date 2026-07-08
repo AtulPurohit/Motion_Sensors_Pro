@@ -1,3 +1,8 @@
+## 1.0.4
+
+* **Rich API Reference Documentation**:
+  * Rewrote all Dart source files with detailed class, constructor, method, and field-level docstrings (`///` comments) explaining units ($m/s^2$, $rad/s$, $\mu T$, $hPa$), requirements, exceptions, and code usage patterns for pub.dev API reference auto-generation.
+
 ## 1.0.3
 
 * **Documentation Improvements**:
