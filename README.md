@@ -14,6 +14,24 @@ A high-performance, battery-efficient, and **Xcode simulator-aware** Flutter plu
 
 ---
 
+## 📱 Platform Support
+
+| Android | iOS | macOS | Web | Linux | Windows |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+|   ✅   |  ✅  |  ❌*  |  ❌  |  ❌   |   ❌    |
+
+\* **macOS**: Exposes safe fallback stream handlers that emit descriptive unsupported sensor exceptions instead of raising missing plugin channel registration errors. Programmatic mock triggers remain fully operational for unit/widget testing.
+
+---
+
+## ⚠️ Hardware Limitations & Safety Fallbacks
+
+1. **Barometer sensor availability**: Atmospheric pressure barometers are missing on budget Android models and older iOS units. `motion_sensors_pro` checks hardware natively and emits a `SENSOR_UNSUPPORTED` stream exception rather than crashing the native process.
+2. **Desktop environment testing**: macOS desktop devices do not contain raw physical accelerometers, gyroscopes, or barometers. The plugin catches this and returns a `SENSOR_UNAVAILABLE` error to protect your code layout.
+3. **Android Linear Acceleration**: If `TYPE_LINEAR_ACCELERATION` is unavailable on legacy Android boards, the plugin falls back to compute high-pass delta coordinates on `TYPE_ACCELEROMETER` natively.
+
+---
+
 ## ✨ Why `motion_sensors_pro` is Better than `sensors_plus`
 
 | Feature | `sensors_plus` | `motion_sensors_pro` |
