@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/motion_sensors_pro.svg)](https://pub.dev/packages/motion_sensors_pro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A high-performance, battery-efficient, and **Xcode simulator-aware** Flutter plugin to access **all 5 major motion & environmental sensors**:
+An elite, hardware-optimized, and **Xcode simulator-aware** Flutter plugin that unifies **high-speed native shake gesture classification** with real-time, dynamic streams for **all 5 core motion & environmental sensors**:
 
 1. **Shake Gesture Detection** (Native classification, 100% Simulator-friendly)
 2. **Accelerometer** (Raw 3-axis acceleration including gravity)
