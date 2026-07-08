@@ -1,3 +1,9 @@
+## 1.0.2
+
+* **Documentation Badge Tweaks**:
+  * Removed broken build status workflow badge from `README.md`.
+  * Changed the color of the Platform and License badges to vibrant orange.
+
 ## 1.0.1
 
 * **Optimized Platform Score**:
