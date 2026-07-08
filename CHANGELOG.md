@@ -1,3 +1,9 @@
+## 1.0.6
+
+* **Platform Support & Swift Package Manager Integration**:
+  * Re-enabled explicit `macos` platform support in `pubspec.yaml` so it appears as a supported platform on pub.dev.
+  * Added Swift Package Manager (SPM) compatibility for both iOS and macOS targets by reorganizing plugin files and adding `Package.swift` manifests. This resolves pub.dev's platform scoring penalty.
+
 ## 1.0.5
 
 * **CI/CD Integration**:

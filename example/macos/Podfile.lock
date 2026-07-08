@@ -1,0 +1,22 @@
+PODS:
+  - FlutterMacOS (1.0.0)
+  - motion_sensors_pro (0.0.1):
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - motion_sensors_pro (from `Flutter/ephemeral/.symlinks/plugins/motion_sensors_pro/macos`)
+
+EXTERNAL SOURCES:
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  motion_sensors_pro:
+    :path: Flutter/ephemeral/.symlinks/plugins/motion_sensors_pro/macos
+
+SPEC CHECKSUMS:
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  motion_sensors_pro: b48ad184895753ce5695a8dc75dcf1312527421e
+
+PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
+
+COCOAPODS: 1.16.2

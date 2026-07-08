@@ -1,6 +1,6 @@
 name: motion_sensors_pro
 description: "Flutter plugin for accessing native shake gesture detection, accelerometer, gyroscope, magnetometer, barometer, 3D attitude, pedometer, and proximity sensors."
-version: 1.0.5
+version: 1.0.6
 homepage: https://github.com/AtulPurohit/Motion_Sensors_Pro
 repository: https://github.com/AtulPurohit/Motion_Sensors_Pro
 environment:
@@ -40,6 +40,8 @@ flutter:
         package: com.example.motion_sensors_pro
         pluginClass: MotionSensorsProPlugin
       ios:
+        pluginClass: MotionSensorsProPlugin
+      macos:
         pluginClass: MotionSensorsProPlugin
       web:
         pluginClass: MotionSensorsProWeb
