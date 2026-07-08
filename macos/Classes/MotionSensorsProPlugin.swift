@@ -14,13 +14,16 @@ public class MotionSensorsProPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
     let eventChannel = FlutterEventChannel(name: "motion_sensors_pro/shake", binaryMessenger: messenger)
     eventChannel.setStreamHandler(instance)
 
-    // Fallback registration for 5 raw streams on macOS to prevent missing channel exception
+    // Fallback registration for all 8 raw streams on macOS to prevent missing channel exception
     let rawChannels = [
       "motion_sensors_pro/accelerometer",
       "motion_sensors_pro/user_accelerometer",
       "motion_sensors_pro/gyroscope",
       "motion_sensors_pro/magnetometer",
-      "motion_sensors_pro/barometer"
+      "motion_sensors_pro/barometer",
+      "motion_sensors_pro/attitude",
+      "motion_sensors_pro/pedometer",
+      "motion_sensors_pro/proximity"
     ]
     for channelName in rawChannels {
       let channel = FlutterEventChannel(name: channelName, binaryMessenger: messenger)

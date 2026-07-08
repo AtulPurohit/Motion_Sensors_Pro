@@ -33,6 +33,18 @@ class MotionSensorsProWeb {
     final baroChannel = PluginEventChannel('motion_sensors_pro/barometer');
     baroChannel.setController(_createUnsupportedController('Barometer'));
 
+    // 7. Attitude Channel (fuses orientation alpha, beta, gamma values)
+    final attitudeChannel = PluginEventChannel('motion_sensors_pro/attitude');
+    attitudeChannel.setController(_createAttitudeController());
+
+    // 8. Pedometer Channel (unsupported on Web/browsers - fails cleanly)
+    final pedometerChannel = PluginEventChannel('motion_sensors_pro/pedometer');
+    pedometerChannel.setController(_createUnsupportedController('Pedometer'));
+
+    // 9. Proximity Channel (unsupported on Web/browsers - fails cleanly)
+    final proximityChannel = PluginEventChannel('motion_sensors_pro/proximity');
+    proximityChannel.setController(_createUnsupportedController('Proximity'));
+
     // Config Method Channel
     final methodChannel = MethodChannel(
       'motion_sensors_pro',
@@ -209,7 +221,30 @@ class MotionSensorsProWeb {
     return controller;
   }
 
-  // Unsupported Sensor Controller (e.g. Barometer on Web)
+  // Attitude / absolute orientation
+  static StreamController<List<double>> _createAttitudeController() {
+    late StreamController<List<double>> controller;
+    StreamSubscription? sub;
+
+    controller = StreamController<List<double>>.broadcast(
+      onListen: () {
+        sub = html.window.onDeviceOrientation.listen((event) {
+          // Convert orientation degree angles to radians
+          final toRad = math.pi / 180.0;
+          final roll = (event.gamma?.toDouble() ?? 0.0) * toRad;
+          final pitch = (event.beta?.toDouble() ?? 0.0) * toRad;
+          final yaw = (event.alpha?.toDouble() ?? 0.0) * toRad;
+          controller.add([roll, pitch, yaw]); // roll, pitch, yaw
+        });
+      },
+      onCancel: () {
+        sub?.cancel();
+      },
+    );
+    return controller;
+  }
+
+  // Unsupported Sensor Controller
   static StreamController<List<double>> _createUnsupportedController(String sensorName) {
     late StreamController<List<double>> controller;
     controller = StreamController<List<double>>.broadcast(

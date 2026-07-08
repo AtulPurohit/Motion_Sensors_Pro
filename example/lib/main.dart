@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:motion_sensors_pro/motion_sensors_pro.dart';
 
 void main() {
@@ -37,6 +38,9 @@ class _SensorDashboardState extends State<SensorDashboard> {
   GyroscopeEvent? _gyroscope;
   MagnetometerEvent? _magnetometer;
   BarometerEvent? _barometer;
+  AttitudeEvent? _attitude;
+  PedometerEvent? _pedometer;
+  ProximityEvent? _proximity;
   int _shakeCount = 0;
 
   // Stream Subscriptions
@@ -46,6 +50,9 @@ class _SensorDashboardState extends State<SensorDashboard> {
   StreamSubscription<GyroscopeEvent>? _gyroSub;
   StreamSubscription<MagnetometerEvent>? _magSub;
   StreamSubscription<BarometerEvent>? _baroSub;
+  StreamSubscription<AttitudeEvent>? _attitudeSub;
+  StreamSubscription<PedometerEvent>? _pedometerSub;
+  StreamSubscription<ProximityEvent>? _proximitySub;
 
   @override
   void initState() {
@@ -90,6 +97,31 @@ class _SensorDashboardState extends State<SensorDashboard> {
         debugPrint('[Barometer] Error/Unsupported: $error');
       },
     );
+
+    // 7. Attitude / 3D Orientation
+    _attitudeSub = MotionSensorsPro.attitudeEvents.listen((event) {
+      setState(() => _attitude = event);
+    });
+
+    // 8. Pedometer
+    _pedometerSub = MotionSensorsPro.pedometerEvents.listen(
+      (event) {
+        setState(() => _pedometer = event);
+      },
+      onError: (error) {
+        debugPrint('[Pedometer] Error/Unsupported: $error');
+      },
+    );
+
+    // 9. Proximity
+    _proximitySub = MotionSensorsPro.proximityEvents.listen(
+      (event) {
+        setState(() => _proximity = event);
+      },
+      onError: (error) {
+        debugPrint('[Proximity] Error/Unsupported: $error');
+      },
+    );
   }
 
   @override
@@ -100,6 +132,9 @@ class _SensorDashboardState extends State<SensorDashboard> {
     _gyroSub?.cancel();
     _magSub?.cancel();
     _baroSub?.cancel();
+    _attitudeSub?.cancel();
+    _pedometerSub?.cancel();
+    _proximitySub?.cancel();
     super.dispose();
   }
 
@@ -273,6 +308,44 @@ class _SensorDashboardState extends State<SensorDashboard> {
                   : [
                       'Pressure: ${_barometer!.pressure.toStringAsFixed(2)} hPa',
                       'Rel Altitude: ${_barometer!.relativeAltitude.toStringAsFixed(2)} m',
+                    ],
+            ),
+
+            // Attitude/Orientation Card
+            _buildSensorCard(
+              title: 'Device Attitude (3D Sensor Fusion)',
+              icon: Icons.grid_goldenratio_rounded,
+              color: Colors.yellowAccent,
+              lines: _attitude == null
+                  ? ['Waiting for stream...']
+                  : [
+                      'Roll (Z-tilt): ${(_attitude!.roll * 180 / math.pi).toStringAsFixed(2)}°',
+                      'Pitch (X-tilt): ${(_attitude!.pitch * 180 / math.pi).toStringAsFixed(2)}°',
+                      'Yaw (Y-rotation): ${(_attitude!.yaw * 180 / math.pi).toStringAsFixed(2)}°',
+                    ],
+            ),
+
+            // Pedometer Card
+            _buildSensorCard(
+              title: 'Pedometer (Step Counter)',
+              icon: Icons.directions_walk_rounded,
+              color: Colors.lightBlueAccent,
+              lines: _pedometer == null
+                  ? ['Waiting for steps...']
+                  : [
+                      'Steps count: ${_pedometer!.steps}',
+                    ],
+            ),
+
+            // Proximity Card
+            _buildSensorCard(
+              title: 'Proximity Sensor (Face Detection)',
+              icon: Icons.visibility_rounded,
+              color: Colors.deepOrangeAccent,
+              lines: _proximity == null
+                  ? ['Waiting for proximity sensor...']
+                  : [
+                      'Object is near: ${_proximity!.isNear ? "YES 🔴" : "NO 🟢"}',
                     ],
             ),
             const SizedBox(height: 32),

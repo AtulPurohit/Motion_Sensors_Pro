@@ -57,13 +57,16 @@ class MotionSensorsProPlugin :
         shakeEventChannel = EventChannel(messenger, "motion_sensors_pro/shake")
         shakeEventChannel.setStreamHandler(this)
 
-        // Initialize and bind the 5 raw sensor event channels
+        // Initialize and bind all 8 raw sensor event channels (5 original + 3 bonus)
         val rawChannels = mapOf(
             "motion_sensors_pro/accelerometer" to Sensor.TYPE_ACCELEROMETER,
             "motion_sensors_pro/user_accelerometer" to Sensor.TYPE_LINEAR_ACCELERATION,
             "motion_sensors_pro/gyroscope" to Sensor.TYPE_GYROSCOPE,
             "motion_sensors_pro/magnetometer" to Sensor.TYPE_MAGNETIC_FIELD,
-            "motion_sensors_pro/barometer" to Sensor.TYPE_PRESSURE
+            "motion_sensors_pro/barometer" to Sensor.TYPE_PRESSURE,
+            "motion_sensors_pro/attitude" to Sensor.TYPE_ROTATION_VECTOR,
+            "motion_sensors_pro/pedometer" to Sensor.TYPE_STEP_COUNTER,
+            "motion_sensors_pro/proximity" to Sensor.TYPE_PROXIMITY
         )
 
         for ((channelName, sensorType) in rawChannels) {
@@ -169,7 +172,7 @@ class MotionSensorsProPlugin :
         accelerometer = null
     }
 
-    // --- Elegant Inner Class to handle the 5 Raw Sensor streams cleanly ---
+    // --- Elegant Inner Class to handle all Raw Sensor streams cleanly ---
     inner class SensorStreamHandler(private val sensorType: Int) : EventChannel.StreamHandler, SensorEventListener {
         private var sensor: Sensor? = null
         private var streamSink: EventChannel.EventSink? = null
@@ -196,11 +199,41 @@ class MotionSensorsProPlugin :
         }
 
         override fun onSensorChanged(event: SensorEvent) {
-            // Package floats as dynamic list of doubles
+            // 1. Attitude / Rotation Vector
+            if (sensorType == Sensor.TYPE_ROTATION_VECTOR) {
+                val rotationMatrix = FloatArray(9)
+                SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                val orientationValues = FloatArray(3)
+                SensorManager.getOrientation(rotationMatrix, orientationValues)
+                val roll = orientationValues[2].toDouble()
+                val pitch = orientationValues[1].toDouble()
+                val yaw = orientationValues[0].toDouble()
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    streamSink?.success(listOf(roll, pitch, yaw)) // roll, pitch, yaw/azimuth
+                }
+                return
+            }
+
+            // 2. Step Counter
+            if (sensorType == Sensor.TYPE_STEP_COUNTER) {
+                val steps = event.values[0].toInt()
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    streamSink?.success(steps)
+                }
+                return
+            }
+
+            // 3. Proximity Sensor
+            if (sensorType == Sensor.TYPE_PROXIMITY) {
+                val isNear = event.values[0] < event.sensor.maximumRange
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    streamSink?.success(if (isNear) 1 else 0)
+                }
+                return
+            }
+
+            // 4. Default raw list sensors (Accelerometer, Gyro, Magnetometer, Barometer)
             val dataList = event.values.map { it.toDouble() }
-            
-            // Barometer has a single pressure value. For API compatibility, 
-            // we pass [pressure, relativeAltitude] where relativeAltitude is 0.0 on Android
             val payload = if (sensorType == Sensor.TYPE_PRESSURE) {
                 listOf(dataList[0], 0.0)
             } else {

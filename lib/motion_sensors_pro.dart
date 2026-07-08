@@ -75,6 +75,54 @@ class BarometerEvent {
       'BarometerEvent(pressure: $pressure, relativeAltitude: $relativeAltitude, timestamp: $timestamp)';
 }
 
+/// Represents device attitude / absolute orientation in 3D space.
+class AttitudeEvent {
+  /// The roll of the device in radians (rotation around the longitudinal axis).
+  final double roll;
+
+  /// The pitch of the device in radians (rotation around the lateral axis).
+  final double pitch;
+
+  /// The yaw/azimuth of the device in radians (rotation around the vertical axis).
+  final double yaw;
+
+  final DateTime timestamp;
+
+  AttitudeEvent(this.roll, this.pitch, this.yaw, {DateTime? timestamp})
+      : timestamp = timestamp ?? DateTime.now();
+
+  @override
+  String toString() => 'AttitudeEvent(roll: $roll, pitch: $pitch, yaw: $yaw, timestamp: $timestamp)';
+}
+
+/// Represents pedometer step count data.
+class PedometerEvent {
+  /// Number of steps taken by the user since the stream started or since device boot.
+  final int steps;
+
+  final DateTime timestamp;
+
+  PedometerEvent(this.steps, {DateTime? timestamp})
+      : timestamp = timestamp ?? DateTime.now();
+
+  @override
+  String toString() => 'PedometerEvent(steps: $steps, timestamp: $timestamp)';
+}
+
+/// Represents proximity sensor proximity readings.
+class ProximityEvent {
+  /// True if an object/face is close to the device sensor; false otherwise.
+  final bool isNear;
+
+  final DateTime timestamp;
+
+  ProximityEvent(this.isNear, {DateTime? timestamp})
+      : timestamp = timestamp ?? DateTime.now();
+
+  @override
+  String toString() => 'ProximityEvent(isNear: $isNear, timestamp: $timestamp)';
+}
+
 /// The core entry point for the Motion Sensors Pro plugin.
 class MotionSensorsPro {
   // Method Channel for triggers & configuration
@@ -87,6 +135,9 @@ class MotionSensorsPro {
   static const EventChannel _gyroscopeChannel = EventChannel('motion_sensors_pro/gyroscope');
   static const EventChannel _magnetometerChannel = EventChannel('motion_sensors_pro/magnetometer');
   static const EventChannel _barometerChannel = EventChannel('motion_sensors_pro/barometer');
+  static const EventChannel _attitudeChannel = EventChannel('motion_sensors_pro/attitude');
+  static const EventChannel _pedometerChannel = EventChannel('motion_sensors_pro/pedometer');
+  static const EventChannel _proximityChannel = EventChannel('motion_sensors_pro/proximity');
 
   // Cache streams to avoid creating duplicate channel bindings
   static Stream<void>? _shakeStream;
@@ -95,6 +146,9 @@ class MotionSensorsPro {
   static Stream<GyroscopeEvent>? _gyroscopeStream;
   static Stream<MagnetometerEvent>? _magnetometerStream;
   static Stream<BarometerEvent>? _barometerStream;
+  static Stream<AttitudeEvent>? _attitudeStream;
+  static Stream<PedometerEvent>? _pedometerStream;
+  static Stream<ProximityEvent>? _proximityStream;
 
   /// Configure the global sampling interval (in microseconds) for all raw sensor streams.
   /// Android: Standard values like SENSOR_DELAY_UI, SENSOR_DELAY_GAME are mapped.
@@ -172,6 +226,35 @@ class MotionSensorsPro {
       return BarometerEvent(list[0], list[1]);
     }).asBroadcastStream();
     return _barometerStream!;
+  }
+
+  /// Stream of device 3D Attitude (Orientation) events.
+  /// Emits roll, pitch, and yaw values in radians.
+  static Stream<AttitudeEvent> get attitudeEvents {
+    _attitudeStream ??= _attitudeChannel.receiveBroadcastStream().map((event) {
+      final list = List<double>.from(event);
+      return AttitudeEvent(list[0], list[1], list[2]);
+    }).asBroadcastStream();
+    return _attitudeStream!;
+  }
+
+  /// Stream of pedometer step count events.
+  static Stream<PedometerEvent> get pedometerEvents {
+    _pedometerStream ??= _pedometerChannel.receiveBroadcastStream().map((event) {
+      final stepCount = event as int;
+      return PedometerEvent(stepCount);
+    }).asBroadcastStream();
+    return _pedometerStream!;
+  }
+
+  /// Stream of proximity sensor events.
+  /// Emits true if user's face/object is detected near the screen.
+  static Stream<ProximityEvent> get proximityEvents {
+    _proximityStream ??= _proximityChannel.receiveBroadcastStream().map((event) {
+      final isNear = (event as int) == 1;
+      return ProximityEvent(isNear);
+    }).asBroadcastStream();
+    return _proximityStream!;
   }
 
   /// Programmatically simulate/trigger a shake gesture event.

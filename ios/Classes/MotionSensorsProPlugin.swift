@@ -9,6 +9,7 @@ public class MotionSensorsProPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
   // Shared CoreMotion managers
   private let motionManager = CMMotionManager()
   private let altimeter = CMAltimeter()
+  private let pedometer = CMPedometer()
   private let queue = OperationQueue()
 
   // Configuration: Default interval corresponds to SENSOR_DELAY_UI (~20ms / 50Hz)
@@ -35,13 +36,16 @@ public class MotionSensorsProPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
     )
     shakeEventChannel.setStreamHandler(instance)
 
-    // Raw Sensor Channels
+    // Raw Sensor Channels (5 original + 3 bonus)
     let rawChannels = [
       ("motion_sensors_pro/accelerometer", "accelerometer"),
       ("motion_sensors_pro/user_accelerometer", "user_accelerometer"),
       ("motion_sensors_pro/gyroscope", "gyroscope"),
       ("motion_sensors_pro/magnetometer", "magnetometer"),
-      ("motion_sensors_pro/barometer", "barometer")
+      ("motion_sensors_pro/barometer", "barometer"),
+      ("motion_sensors_pro/attitude", "attitude"),
+      ("motion_sensors_pro/pedometer", "pedometer"),
+      ("motion_sensors_pro/proximity", "proximity")
     ]
 
     for (channelName, sensorType) in rawChannels {
@@ -50,6 +54,7 @@ public class MotionSensorsProPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         sensorType: sensorType,
         motionManager: instance.motionManager,
         altimeter: instance.altimeter,
+        pedometer: instance.pedometer,
         queue: instance.queue,
         parent: instance
       )
@@ -125,19 +130,25 @@ class SensorStreamHandler: NSObject, FlutterStreamHandler {
   private let sensorType: String
   private let motionManager: CMMotionManager
   private let altimeter: CMAltimeter
+  private let pedometer: CMPedometer
   private let queue: OperationQueue
   private weak var parent: MotionSensorsProPlugin?
+
+  // Callback sink for proximity notifications
+  private var proximityEventSink: FlutterEventSink?
 
   init(
     sensorType: String,
     motionManager: CMMotionManager,
     altimeter: CMAltimeter,
+    pedometer: CMPedometer,
     queue: OperationQueue,
     parent: MotionSensorsProPlugin
   ) {
     self.sensorType = sensorType
     self.motionManager = motionManager
     self.altimeter = altimeter
+    self.pedometer = pedometer
     self.queue = queue
     self.parent = parent
   }
@@ -204,6 +215,39 @@ class SensorStreamHandler: NSObject, FlutterStreamHandler {
         return FlutterError(code: "SENSOR_UNSUPPORTED", message: "Barometer (relative altitude updates) is not available on this device", details: nil)
       }
 
+    case "attitude":
+      guard motionManager.isDeviceMotionAvailable else {
+        return FlutterError(code: "SENSOR_UNAVAILABLE", message: "Device motion is not available on this device", details: nil)
+      }
+      motionManager.deviceMotionUpdateInterval = delay
+      motionManager.startDeviceMotionUpdates(to: queue) { motion, error in
+        guard let motion = motion else { return }
+        events([motion.attitude.roll, motion.attitude.pitch, motion.attitude.yaw])
+      }
+
+    case "pedometer":
+      guard CMPedometer.isStepCountingAvailable() else {
+        return FlutterError(code: "SENSOR_UNSUPPORTED", message: "Step counting is not supported on this device", details: nil)
+      }
+      pedometer.startUpdates(from: Date()) { data, error in
+        guard let data = data else { return }
+        events(data.numberOfSteps.intValue)
+      }
+
+    case "proximity":
+      DispatchQueue.main.async {
+        UIDevice.current.isProximityMonitoringEnabled = true
+        events(UIDevice.current.proximityState ? 1 : 0)
+        
+        NotificationCenter.default.addObserver(
+          self,
+          selector: #selector(self.proximityStateChanged(_:)),
+          name: UIDevice.proximityStateDidChangeNotification,
+          object: nil
+        )
+        self.proximityEventSink = events
+      }
+
     default:
       break
     }
@@ -214,7 +258,7 @@ class SensorStreamHandler: NSObject, FlutterStreamHandler {
     switch sensorType {
     case "accelerometer":
       motionManager.stopAccelerometerUpdates()
-    case "user_accelerometer":
+    case "user_accelerometer", "attitude":
       motionManager.stopDeviceMotionUpdates()
     case "gyroscope":
       motionManager.stopGyroUpdates()
@@ -224,10 +268,28 @@ class SensorStreamHandler: NSObject, FlutterStreamHandler {
       if #available(iOS 8.0, *) {
         altimeter.stopRelativeAltitudeUpdates()
       }
+    case "pedometer":
+      pedometer.stopUpdates()
+    case "proximity":
+      DispatchQueue.main.async {
+        UIDevice.current.isProximityMonitoringEnabled = false
+        NotificationCenter.default.removeObserver(
+          self,
+          name: UIDevice.proximityStateDidChangeNotification,
+          object: nil
+        )
+        self.proximityEventSink = nil
+      }
     default:
       break
     }
     return nil
+  }
+
+  @objc private func proximityStateChanged(_ notification: Notification) {
+    guard let events = proximityEventSink else { return }
+    let isNear = UIDevice.current.proximityState
+    events(isNear ? 1 : 0)
   }
 }
 
