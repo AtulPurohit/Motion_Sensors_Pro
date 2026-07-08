@@ -8,6 +8,8 @@
 
 A premium, production-grade motion and environmental sensor engine for Flutter. By combining high-efficiency native gesture classification with real-time, low-latency streams for **8 physical hardware sensors**, it provides developers with the ultimate API for immersive, device-aware mobile experiences. Engineered with sub-millisecond dynamic intervals, thread-safe memory mapping, and seamless Xcode Simulator mock-shake routing, it represents the new standard for motion tracking in Flutter.
 
+![Motion Sensors Pro](https://raw.githubusercontent.com/AtulPurohit/Motion_Sensors_Pro/main/example/Motion_Sensors_Pro_Atul_Purohit.png)
+
 1. **Shake Gesture Detection** (Native classification, 100% Simulator-friendly)
 2. **Accelerometer** (Raw 3-axis acceleration including gravity)
 3. **User Accelerometer** (Gravity mathematically subtracted by OS)

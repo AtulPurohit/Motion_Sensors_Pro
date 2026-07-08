@@ -1,3 +1,8 @@
+## 1.0.7
+
+* **Documentation Enhancements**:
+  * Added the `Motion_Sensors_Pro_Atul_Purohit.png` promo image below the introduction paragraph in `README.md`.
+
 ## 1.0.6
 
 * **Platform Support & Swift Package Manager Integration**:
