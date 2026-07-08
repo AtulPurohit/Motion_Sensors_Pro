@@ -3,32 +3,27 @@
 [![pub package](https://img.shields.io/pub/v/motion_sensors_pro.svg)](https://pub.dev/packages/motion_sensors_pro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A high-performance, battery-efficient, and **Xcode simulator-aware** shake gesture detection plugin for Flutter. 
+A high-performance, battery-efficient, and **Xcode simulator-aware** Flutter plugin to access **all 5 major motion & environmental sensors**:
 
-Unlike low-level sensor plugins (such as `sensors_plus`) that flood the Flutter bridge with continuous coordinate streams, `Motion Sensors Pro` does all the math natively and triggers a single, debounced event only when a genuine shake gesture occurs.
-
----
-
-## ✨ Features
-
-- 🔋 **Battery-Efficient**: Performs high-frequency shake detection calculations directly in native memory (Swift/Kotlin) so the CPU sleeps until a shake is detected.
-- ⚡ **Zero Bridge Flooding**: Emits a single event over the platform channel per gesture instead of 100+ coordinate objects per second.
-- 📱 **Xcode Simulator Shake Support**: Fully compatible with the iOS Simulator's `Hardware -> Shake Gesture` command out-of-the-box.
-- 🛡️ **Advanced Noise Filtering**: Employs gravity-subtracted linear acceleration on Android and native motion listeners on iOS to filter out tremors, drift, and tilts.
-- ⏱️ **Dual-Layer Debouncing**: Combines a native 1-second cooldown with a Dart 1.5-second broadcast stream filter to ensure a single physical shake triggers exactly one action.
-- 🧪 **Mocking & Test Support**: Exposes a clean `mockShake()` method for automated unit/integration testing or triggering simulated shakes on macOS/Simulator.
+1. **Shake Gesture Detection** (Native classification, 100% Simulator-friendly)
+2. **Accelerometer** (Raw 3-axis acceleration including gravity)
+3. **User Accelerometer** (Gravity mathematically subtracted by OS)
+4. **Gyroscope** (Angular velocity/rotation speed)
+5. **Magnetometer** (Ambient magnetic field vector)
+6. **Barometer** (Atmospheric pressure & relative altitude changes)
 
 ---
 
-## 📊 Comparison: `sensors_plus` vs `motion_sensors_pro`
+## ✨ Why `Motion Sensors Pro` is Better than `sensors_plus`
 
 | Feature | `sensors_plus` | `motion_sensors_pro` |
 | :--- | :---: | :---: |
-| **Data Overhead** | High (constant coordinate serialization) | **Minimal (single event on trigger)** |
-| **Noise Filtering** | None (must write custom Dart filters) | **Native (low/high-pass & gravity subtraction)** |
-| **iOS Simulator Shake Command** | ❌ Fails (doesn't trigger accelerometer) | **✅ Supported (intercepts native UI window shake)** |
-| **Battery Consumption** | High (active CPU thread & GC pressure) | **Ultra Low (sleeps when device is static)** |
-| **Integration Complexity** | High (requires manual math/gestures) | **Instant (plug-and-play Stream)** |
+| **Shake Gesture detection** | ❌ None (must parse streams manually in Dart) | **✅ Native classification, debounced and ready** |
+| **Xcode Simulator Shake Support** | ❌ Fails (simulate shake triggers no sensors) | **✅ Supported (intercepts native motion window)** |
+| **Dynamic Sampling Interval** | ⚠️ Limited / Static configurations | **✅ Dynamic configuration down to microseconds** |
+| **Bridge Overhead / CPU Load** | High (floods bridge with 100+ coordinate msg/s) | **Ultra Low (sleeps when static, custom intervals)** |
+| **Barometer Fallback Handling** | ❌ Prone to crash on missing hardware | **✅ Graceful fallback (emits clean Unsupported exception)** |
+| **Desktop / macOS Support** | ⚠️ Partial / Unhandled channels | **✅ Safe fallbacks (returns descriptive status exceptions)** |
 
 ---
 
@@ -50,76 +45,123 @@ Run `flutter pub get` in your project folder.
 
 ## 📖 Usage
 
-Using `Motion Sensors Pro` is incredibly simple. Just listen to the `onShake` stream:
+### 1. Dynamic Sampling Frequency (Global Configuration)
+
+Unlike other plugins, you can configure the sensor polling interval dynamically from Dart. CoreMotion and Android SensorManager adapt immediately:
 
 ```dart
-import 'package:flutter/material.dart';
 import 'package:motion_sensors_pro/motion_sensors_pro.dart';
 
-class ShakeDemoScreen extends StatefulWidget {
-  const ShakeDemoScreen({Key? key}) : super(key: key);
-
-  @override
-  State<ShakeDemoScreen> createState() => _ShakeDemoScreenState();
-}
-
-class _ShakeDemoScreenState extends State<ShakeDemoScreen> {
-  late final StreamSubscription<void> _shakeSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    
-    // Subscribe to shake gestures
-    _shakeSubscription = MotionSensorsPro.onShake.listen((_) {
-      _handleShakeGesture();
-    });
-  }
-
-  void _handleShakeGesture() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📱 Shake gesture detected successfully!'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    // Unsubscribing automatically turns off hardware listeners to save battery
-    _shakeSubscription.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Motion Sensors Pro')),
-      body: const Center(
-        child: Text('Shake your physical device or trigger Xcode Simulator Shake!'),
-      ),
-    );
-  }
-}
+// Set sampling rate to every 50 milliseconds (20Hz)
+await MotionSensorsPro.setSensorInterval(const Duration(milliseconds: 50));
 ```
 
-### 🧪 Programmatic Testing (Mocking)
+---
 
-You can trigger a shake event programmatically without physical movement. This is ideal for automated driver tests or adding quick debug triggers in your UI:
+### 2. Shake Gesture Detection
+
+Listen for device shake events. A native-level cooldown (1.0s) and Dart-level debouncer (1.5s) ensure exactly one event fires per physical gesture:
 
 ```dart
-// Simulate a native shake gesture event
+MotionSensorsPro.onShake.listen((_) {
+  print("📱 Device was shaken!");
+});
+```
+
+#### Xcode Simulator Testing
+In Xcode Simulator, trigger a shake by selecting **Features -> Shake Gesture** (or **Hardware -> Shake Gesture**). The stream will fire normally.
+
+---
+
+### 3. Accelerometer (Raw Acceleration including Gravity)
+
+Emits raw acceleration values along the X, Y, and Z axes in $m/s^2$.
+
+```dart
+MotionSensorsPro.accelerometerEvents.listen((event) {
+  print("Raw Accelerometer: X: ${event.x}, Y: ${event.y}, Z: ${event.z}");
+});
+```
+
+---
+
+### 4. User Accelerometer (Acceleration excluding Gravity)
+
+Emits clean acceleration values with gravity mathematically subtracted by the device's hardware abstraction layers (CoreMotion / Android Sensor Hub).
+
+```dart
+MotionSensorsPro.userAccelerometerEvents.listen((event) {
+  print("User Acceleration: X: ${event.x}, Y: ${event.y}, Z: ${event.z}");
+});
+```
+
+---
+
+### 5. Gyroscope (Angular Velocity)
+
+Emits spatial rotation velocity readings in radians per second ($rad/s$).
+
+```dart
+MotionSensorsPro.gyroscopeEvents.listen((event) {
+  print("Gyroscope Rotation: X: ${event.x}, Y: ${event.y}, Z: ${event.z}");
+});
+```
+
+---
+
+### 6. Magnetometer (Ambient Magnetic Field)
+
+Emits geomagnetic field strength readings along the three spatial axes in micro-Tesla ($\mu T$).
+
+```dart
+MotionSensorsPro.magnetometerEvents.listen((event) {
+  print("Magnetic Field: X: ${event.x}, Y: ${event.y}, Z: ${event.z}");
+});
+```
+
+---
+
+### 7. Barometer (Atmospheric Pressure & Relative Altitude)
+
+Emits atmospheric pressure values in hectopascals ($hPa$) / millibars and relative altitude changes in meters (supported primarily on iOS).
+Fails gracefully with a descriptive error if the device lacks barometer hardware:
+
+```dart
+MotionSensorsPro.barometerEvents.listen(
+  (event) {
+    print("Pressure: ${event.pressure} hPa");
+    print("Rel Altitude change: ${event.relativeAltitude} meters");
+  },
+  onError: (error) {
+    print("Barometer not supported: $error");
+  },
+);
+```
+
+---
+
+## 🧪 Programmatic Testing (Mocking)
+
+You can programmatically mock a shake gesture event for automated driver/unit tests:
+
+```dart
+// Simulates a physical shake gesture
 await MotionSensorsPro.mockShake();
 ```
 
 ---
 
-## 🛠️ How It Works (Technical Overview)
+## 🛠️ Implementation Details
 
-1. **iOS (`Swift`)**: Intercepts iOS window motion events using a clean Swift extension on `UIWindow` matching `.motionShake`. This enables seamless compatibility with Xcode's simulated shake command.
-2. **Android (`Kotlin`)**: Registers a native `SensorEventListener`. It prioritizes `TYPE_LINEAR_ACCELERATION` (where gravity is pre-subtracted by the Android hardware abstraction layer), falling back to vector delta magnitude mapping on older hardware.
-3. **Flutter Platform Channel**: Operates over a single `EventChannel` (`motion_sensors_pro/shake`). Because we perform all gesture classification on the native side, we only pass an event when a real shake is validated.
+### iOS (`Swift`)
+- **Shake**: Extended `UIWindow` to intercept `.motionShake` events directly.
+- **Motion Sensors**: Binds to `CMMotionManager`. Acceleration values are scaled by standard gravity ($9.80665$) to ensure cross-platform unit consistency.
+- **Barometer**: Accesses `CMAltimeter` and multiplies pressure values by $10.0$ to convert kilopascals ($kPa$) to standard hectopascals ($hPa$).
+
+### Android (`Kotlin`)
+- **Shake**: Prioritizes Android's hardware `Sensor.TYPE_LINEAR_ACCELERATION` (gravity pre-subtracted by Android OS), falling back to magnitude-delta calculations on older hardware.
+- **Motion Sensors**: Integrates `SensorManager` event listeners for `TYPE_ACCELEROMETER`, `TYPE_LINEAR_ACCELERATION`, `TYPE_GYROSCOPE`, `TYPE_MAGNETIC_FIELD`, and `TYPE_PRESSURE`.
+- **Thread Safety**: Relies on a main-thread handler to pass events safely into Flutter's `EventSink`.
 
 ---
 
